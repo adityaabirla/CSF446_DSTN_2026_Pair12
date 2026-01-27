@@ -684,11 +684,58 @@ class Disk:
     # else physical distance + R * (total number of tracks)
     # In case of ties (same track), preserve original request ordering
     #
-    def DoVR(self, rList):
+    #def DoVR(self, rList):
         # TODO: Implement V(R) scheduling
         # This should return (block, index) tuple
-        pass
+    #    pass
 
+    def DoVR(self, rList):
+        if not rList:
+            return None
+
+        best_block = None
+        best_index = None
+        best_effective_dist = float('inf')
+        best_physical_dist = float('inf')
+
+        current_block = self.armTrack
+
+        for block, index in rList:
+            if self.requestState[index] == STATE_DONE:
+                continue
+
+            physical_dist = abs(block - current_block)
+
+            # Direction check (BLOCK-based)
+            if self.currentDirection == 1:  # upward
+                in_current_direction = block >= current_block
+            else:  # downward
+                in_current_direction = block <= current_block
+
+            # Effective distance
+            if in_current_direction:
+                effective_dist = physical_dist
+            else:
+                effective_dist = physical_dist + (self.rValue * self.numTracks)
+
+            # Tie-breaking:
+            if (
+                effective_dist < best_effective_dist or
+                (effective_dist == best_effective_dist and physical_dist < best_physical_dist) or
+                (effective_dist == best_effective_dist and physical_dist == best_physical_dist and
+                (best_index is None or index < best_index))
+            ):
+                best_effective_dist = effective_dist
+                best_physical_dist = physical_dist
+                best_block = block
+                best_index = index
+
+        if best_block is None:
+            return None
+
+        return (best_block, best_index)
+
+    
     def UpdateWindow(self):
         if (
             self.fairWindow == -1

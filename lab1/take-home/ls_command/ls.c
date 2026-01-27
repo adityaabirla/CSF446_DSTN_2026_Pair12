@@ -327,17 +327,18 @@ StringMatrix* ls_process_entries(Ls* ls, LsEntry* entries, size_t* count) {
         matrix->rows = *count;
         int msz1 = sizeof(size_t) * matrix->rows;
         int msz2 = sizeof(char**) * matrix->rows;
-        matrix->cols = malloc(msz1);
-        matrix->data = malloc(msz2);
+        matrix->cols = malloc(msz1); //col count per row
+        matrix->data = malloc(msz2); // each dereferences via char**
         for(int i = 0; i<matrix->rows; i++)
         {
             bool lflag = ls->l_;
             size_t colsize = (lflag) ? 2 : 1; //one extra column for file type and shi
+
             matrix->cols[i] = colsize;
             int msz3 = sizeof(char*) * colsize;
             matrix->data[i] = malloc(msz3);
             char* temp2 = entries[i].name;
-            matrix->data[i][0] = strdup_safe(temp2);
+            matrix->data[i][0] = strdup_safe(temp2); //duplicate for matrix having own copy
             char *temp = get_file_type_string(entries[i].type);
             if(lflag) matrix->data[i][1] = strdup_safe(temp);
         }
@@ -349,7 +350,7 @@ StringMatrix* ls_process_entries(Ls* ls, LsEntry* entries, size_t* count) {
         //grouping logic for hardlinks ->>
         size_t numOfGroups = 0;
         qsort(entries, *count, sizeof(LsEntry), sort_by_id_then_name);
-        for(int i = 0; i< (*count);)
+        for(int i = 0; i< (*count);) 
         {
             int j = i+1;
             while(j < (*count) && entries[j].inode == entries[i].inode) j++;
@@ -361,8 +362,9 @@ StringMatrix* ls_process_entries(Ls* ls, LsEntry* entries, size_t* count) {
         matrix->rows = numOfGroups;
         matrix->data = malloc(sizeof(char**) * numOfGroups);
         matrix->cols = malloc(sizeof(size_t) * numOfGroups);
+
         int mallocSize = sizeof(struct RowWrapper) * numOfGroups;
-        struct RowWrapper* wrapperss = malloc(mallocSize);
+        struct RowWrapper* wrapperss = malloc(mallocSize); //wrap each row in a struct, sort wrapper, rebuild matrix after
         size_t groupIndex = 0;
         for(int i = 0; i<*count; i)
         {

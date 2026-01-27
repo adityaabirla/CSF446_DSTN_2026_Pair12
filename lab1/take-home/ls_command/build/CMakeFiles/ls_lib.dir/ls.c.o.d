@@ -1,9 +1,8 @@
 CMakeFiles/ls_lib.dir/ls.c.o: \
-  /Users/adityabirla/Downloads/DSTN\ Project/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/ls.c \
-  /Users/adityabirla/Downloads/DSTN\ Project/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/ls.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdbool.h \
+  /Users/khushi/Documents/dstn/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/ls.c \
+  /Users/khushi/Documents/dstn/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/ls.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stdbool.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stdlib.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdlib.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/Availability.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/AvailabilityVersions.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/AvailabilityInternal.h \
@@ -11,8 +10,6 @@ CMakeFiles/ls_lib.dir/ls.c.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/cdefs.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_symbol_aliasing.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_posix_availability.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/ptrcheck.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_bounds.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/_types.h \
@@ -48,7 +45,7 @@ CMakeFiles/ls_lib.dir/ls.c.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_size_t.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_uid_t.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/resource.h \
-  /Library/Developer/CommandLineTools/usr/lib/clang/17/include/stdint.h \
+  /Library/Developer/CommandLineTools/usr/lib/clang/15.0.0/include/stdint.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/stdint.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint8_t.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_uint16_t.h \
@@ -60,11 +57,9 @@ CMakeFiles/ls_lib.dir/ls.c.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/endian.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/endian.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_endian.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/machine/_endian.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/_endian.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/__endian.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/libkern/_OSByteOrder.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/libkern/arm/_OSByteOrder.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/libkern/arm/OSByteOrder.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/arm/arch.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/alloca.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_ct_rune_t.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_rune_t.h \
@@ -73,7 +68,6 @@ CMakeFiles/ls_lib.dir/ls.c.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_malloc.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_malloc_type.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/malloc/_ptrcheck.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_abort.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_dev_t.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_mode_t.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/types.h \
@@ -120,14 +114,12 @@ CMakeFiles/ls_lib.dir/ls.c.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_stdio.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_va_list.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/stdio.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_printf.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_seek_set.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_ctermid.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/secure/_stdio.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/secure/_common.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/string.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_string.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_strings.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/strings.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/secure/_strings.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/secure/_string.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/dirent.h \

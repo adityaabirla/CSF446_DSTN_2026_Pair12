@@ -108,7 +108,7 @@ GrepResult* grep_search_file(GrepOptions* opts, const char* filename) {
             if(result->count >= result->capacity)
             {
                 result->capacity *= 2;
-                GrepMatch* temp = (GrepMatch*) realloc(result->matches, result->capacity);
+                GrepMatch* temp = (GrepMatch*) realloc(result->matches, sizeof(GrepMatch) * result->capacity);
                 if(temp == NULL) break;
                 result->matches = temp;
             } //vector imnplementation type thing

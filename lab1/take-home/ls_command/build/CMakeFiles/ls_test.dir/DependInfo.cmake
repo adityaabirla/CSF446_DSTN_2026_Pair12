@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/ls_test.c" "CMakeFiles/ls_test.dir/ls_test.c.o" "gcc" "CMakeFiles/ls_test.dir/ls_test.c.o.d"
+  "/Users/khushi/Documents/dstn/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/ls_test.c" "CMakeFiles/ls_test.dir/ls_test.c.o" "gcc" "CMakeFiles/ls_test.dir/ls_test.c.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

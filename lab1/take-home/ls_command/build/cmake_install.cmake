@@ -1,4 +1,4 @@
-# Install script for directory: /Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command
+# Install script for directory: /Users/khushi/Documents/dstn/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -40,7 +40,7 @@ endif()
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
 if(CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/build/install_local_manifest.txt"
+  file(WRITE "/Users/khushi/Documents/dstn/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/build/install_local_manifest.txt"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()
 if(CMAKE_INSTALL_COMPONENT)
@@ -56,6 +56,6 @@ else()
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  file(WRITE "/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/build/${CMAKE_INSTALL_MANIFEST}"
+  file(WRITE "/Users/khushi/Documents/dstn/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
 endif()

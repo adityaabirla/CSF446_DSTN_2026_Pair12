@@ -1,0 +1,6 @@
+hello world
+this is a test
+Hello World
+another line
+test pattern here
+no match line

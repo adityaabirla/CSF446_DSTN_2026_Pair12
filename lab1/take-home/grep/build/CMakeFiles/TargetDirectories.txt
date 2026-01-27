@@ -1,0 +1,6 @@
+/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/grep/build/CMakeFiles/grep_lib.dir
+/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/grep/build/CMakeFiles/grep_test.dir
+/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/grep/build/CMakeFiles/run_grep_test.dir
+/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/grep/build/CMakeFiles/test.dir
+/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/grep/build/CMakeFiles/edit_cache.dir
+/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/grep/build/CMakeFiles/rebuild_cache.dir

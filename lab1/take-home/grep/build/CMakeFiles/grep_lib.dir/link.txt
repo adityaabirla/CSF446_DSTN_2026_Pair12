@@ -1,0 +1,2 @@
+/usr/bin/ar qc libgrep_lib.a CMakeFiles/grep_lib.dir/grep.c.o
+/usr/bin/ranlib libgrep_lib.a

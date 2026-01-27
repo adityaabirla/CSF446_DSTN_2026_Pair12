@@ -648,7 +648,34 @@ class Disk:
     def DoCLOOK(self, rList):
         # TODO: Implement C-LOOK scheduling
         # This should return (block, index) tuple
-        pass
+        pending = []
+        for block,index in rList:
+            if self.requestState[index] != STATE_DONE:
+                track = self.blockToTrackMap[block]
+                pending.append({'track':track, 'block':block, 'index':index})
+
+        if not pending:
+            return None
+        
+        if self.initialDir == 1:
+            #inwards
+            higher = [p for p in pending if p['track'] >= self.armTrack]
+            if higher:
+                higher.sort(key = lambda x : (x['track'], x['index']))
+                next_request = higher[0]
+            else:
+                pending.sort(key = lambda x : (x['track'], x['index']))
+                next_request = pending[0]
+        else: #outwards now
+            lower = [p for p in pending if p['track'] <= self.armTrack]
+            if lower:
+                lower.sort(key = lambda x : (-x['track'], x['index']))
+                next_request = lower[0]
+            else:
+                pending.sort(key = lambda x : (-x['track'], x['index']))
+                next_request = pending[0]
+
+        return (next_request['block'], next_request['index'])
 
     #
     # TODO: Implement DoVR method
@@ -1074,3 +1101,288 @@ d = Disk(
 # run simulation
 d.Go()
 print(d.getBlockStats())
+
+
+"""
+================================================================================
+                            DISK SIMULATOR DOCUMENTATION
+================================================================================
+
+OVERVIEW
+--------
+This class (`Disk`) simulates a hard disk drive (HDD) at a physical and logical level. 
+It visualizes the movement of the disk arm and the spinning platter using `tkinter`. 
+Its primary purpose is to calculate and visualize the time costs associated with 
+disk I/O: Seek Time, Rotational Latency, and Transfer Time. It also implements 
+various disk scheduling algorithms (SSTF, SATF, C-LOOK) to optimize these times.
+
+--------------------------------------------------------------------------------
+1. GLOBAL & CLASS ATTRIBUTES (Variables in __init__)
+--------------------------------------------------------------------------------
+
+PHYSICAL PARAMETERS:
+- self.addr, self.addrDesc : Configuration for generating the request workload (blocks to read).
+- self.seekSpeed    : Speed at which the disk arm moves across tracks (in arbitrary units/tick).
+- self.rotateSpeed  : Speed at which the platter spins (degrees per tick).
+- self.skew         : The block offset between adjacent tracks (cylinder skew) to optimize sequential reads.
+- self.numTracks    : Total number of concentric tracks on the disk surface.
+- self.armTrack     : The current track index where the disk head is located.
+- self.angle        : The current rotational angle of the platter (0-360 degrees).
+
+LOGICAL PARAMETERS:
+- self.policy       : The scheduling algorithm to use (e.g., 'SSTF', 'SATF', 'BSATF', 'CLOOK').
+- self.window       : (For Fair/Windowed policies) How many requests deep into the queue the scheduler can look.
+- self.requests     : The list of Initial I/O requests (Block numbers) generated at startup.
+- self.lateRequests : Requests that arrive after the simulation starts (simulating dynamic load).
+- self.queue        : The active list of pending I/O requests.
+
+GRAPHICS & UI:
+- self.graphics     : Boolean flag to enable/disable the GUI.
+- self.canvas       : The tkinter drawing area.
+- self.tracks       : Dictionary mapping logical track IDs to their pixel radius on the canvas.
+- self.state        : Current mechanical state of the disk.
+                      Enum: STATE_NULL (Idle), STATE_SEEK (Moving Arm), 
+                            STATE_ROTATE (Waiting for sector), STATE_XFER (Reading data).
+
+--------------------------------------------------------------------------------
+2. FUNCTION DOCUMENTATION & LOGIC EXPLANATION
+--------------------------------------------------------------------------------
+
+--- INITIALIZATION & SETUP ---
+
+def __init__(...):
+    Setup routine. It initializes the physical geometry, creates the tkinter window 
+    if graphics are enabled, and generates the initial workload using `MakeRequests`.
+    It calculates the `trackWidth` to ensure the arm speed divides evenly into the 
+    distance between tracks for smoother animation.
+
+def InitBlockLayout(self):
+    Why: A disk isn't just a list of numbers; it's a physical circle. We must map a 
+    logical "Block ID" (e.g., Block 50) to a physical location (Track 2, Angle 45).
+    How: It iterates through every track and sector, populating `self.blockToTrackMap` 
+    and `self.blockToAngleMap`. It handles "Zoning" (outer tracks hold more blocks 
+    than inner tracks) if configured.
+
+def MakeRequests(self, addr, addrDesc):
+    Why: To create the workload for the simulation.
+    How: If `addr` is "-1", it parses `addrDesc` (e.g., "10,100,0") to generate random 
+    requests. Otherwise, it uses the specific comma-separated list provided by the user.
+
+--- SIMULATION CORE ---
+
+def Go(self):
+    The main entry point. If graphics are on, it starts the tkinter `mainloop`. 
+    If off, it runs a "headless" while-loop calling `Animate` until the queue is empty.
+
+def UpdateTime(self):
+    Updates the on-screen timers (Seek, Rotate, Transfer) during the simulation loop.
+
+def AddQueueEntry(self, block, index):
+    Adds a request visual (a box) to the "IO Queue" section at the bottom of the window.
+
+def SwitchState(self, newState):
+    Transitions the disk state machine (e.g., from Seeking -> Rotating).
+    Updates the internal `self.state` variable which dictates what `Animate()` does next.
+
+--- PHYSICS & GEOMETRY HELPERS ---
+
+def RadiallyCloseTo(self, a1, a2):
+    Why: Due to discrete time steps in simulation, the head might "skip" over the 
+    exact target angle. 
+    How: Checks if the difference between current angle `a1` and target `a2` is less 
+    than `rotateSpeed`. If yes, we consider the head to have "arrived" at the sector.
+
+def DoneWithSeek(self):
+    Why: Handles the animation and logic of moving the arm.
+    How: Increments/Decrements `armX` based on `armSpeed`. 
+    Returns True only when the arm's pixel position matches the target track's position.
+
+def DoneWithRotation(self):
+    Checks if the desired sector has rotated underneath the disk head.
+    Transition: If True, disk moves from STATE_ROTATE -> STATE_XFER.
+
+def DoneWithTransfer(self):
+    Checks if the sector has fully passed under the head (read complete).
+    Transition: If True, disk moves from STATE_XFER -> STATE_DONE.
+
+--- SCHEDULING ALGORITHMS ( The "Brains" ) ---
+
+def DoSSTF(self, rList):
+    Algorithm: Shortest Seek Time First.
+    Logic: 
+    1. It iterates through all pending requests in `rList`.
+    2. Calculates the distance (`math.fabs`) between the current `armTrack` and the request's track.
+    3. Returns a list of all requests located on the nearest track.
+    *Note: The actual implementation here groups ties (requests on the same track) together.*
+
+def DoSATF(self, rList):
+    Algorithm: Shortest Access Time First (SPTF).
+    Why: Seek time isn't the only cost; rotational latency matters too.
+    Logic:
+    1. Iterates through requests.
+    2. Calls `EstimateTime(block)` for each.
+       - `EstimateTime` sums up: Seek Time + Rotational Delay + Transfer Time.
+    3. Returns the request with the absolute lowest total estimated time.
+    *Result: This is usually the most performant algorithm.*
+
+def DoCLOOK(self, rList):
+    Algorithm: Circular LOOK (C-LOOK).
+    Why: To provide fairness and reduce starvation compared to SSTF, while being faster than FIFO.
+    Logic:
+    1. Creates a `pending` list of requests that aren't DONE.
+    2. Checks `self.initialDir` (1 for Inward, 0 for Outward).
+    3. IF Inward (1):
+       - Looks for requests on tracks >= current `armTrack`.
+       - If found, picks the closest one (smallest track difference).
+       - If NOT found (reached the edge), it wraps around to the LOWEST track in the entire list.
+    4. IF Outward (0):
+       - Looks for requests on tracks <= current `armTrack`.
+       - If found, picks the closest one (largest track number <= current).
+       - If NOT found, wraps around to the HIGHEST track.
+    5. Returns the chosen request (block, index).
+
+--------------------------------------------------------------------------------
+3. USAGE TIPS
+--------------------------------------------------------------------------------
+- To run with graphics: Ensure `options.graphics` is True (pass -G flag usually).
+- To test fairness: Compare `SSTF` vs `CLOOK` on a spread-out workload. SSTF will 
+  starve distant requests; CLOOK will service them in passes.
+- To test performance: Compare `SATF` vs `SSTF`. SATF should win because it accounts 
+  for rotation.
+"""
+
+"""
+================================================================================
+                            FUNCTION: DoCLOOK
+================================================================================
+
+OVERVIEW
+--------
+This function implements the C-LOOK (Circular LOOK) disk scheduling algorithm.
+
+THEORY:
+Unlike standard LOOK (which scans back and forth like an elevator), C-LOOK is designed 
+to reduce variance in response time. It scans in only ONE direction.
+1. It services requests moving in a specific direction (e.g., Outward -> Inward).
+2. When it runs out of requests in that direction, it does NOT reverse and service 
+   requests on the way back.
+3. Instead, it "jumps" immediately to the beginning of the queue (the furthest request 
+   on the other side) and resumes scanning in the original direction.
+
+VISUAL ANALOGY:
+Think of a typewriter. You type left-to-right (servicing requests). When you reach the 
+end of the line, you carriage return all the way back to the left (without typing) 
+and start again.
+
+VARIABLES:
+- rList            : The list of all requests passed by the simulation.
+- pending          : A temporary list to store only the requests that are not yet 'DONE'.
+- self.armTrack    : The current physical track location of the disk head.
+- self.initialDir  : The fixed scanning direction. 
+                     1 = Inward (Track 0 -> Track N). 
+                     0 = Outward (Track N -> Track 0).
+
+                     
+--------------------------------------------------------------------------------
+LINE-BY-LINE LOGIC EXPLANATION
+--------------------------------------------------------------------------------
+"""
+'''
+def DoCLOOK(self, rList):
+    # ---------------------------------------------------------
+    # STEP 1: Filter and Pre-process
+    # ---------------------------------------------------------
+    
+    # Create an empty list to hold requests that actually need processing.
+    pending = []
+    
+    # Loop through every request currently known to the system.
+    for block, index in rList:
+        
+        # Check the state. If it is STATE_DONE, we ignore it. 
+        # We only care about active requests.
+        if self.requestState[index] != STATE_DONE:
+            
+            # Map the logical block number (e.g., 50) to the physical track (e.g., 2).
+            # We need the track number to calculate distances.
+            track = self.blockToTrackMap[block]
+            
+            # Store this valid request as a dictionary for easier sorting later.
+            # We save:
+            # - 'track': primary sorting key (location).
+            # - 'block': needed to return the answer.
+            # - 'index': secondary sorting key (arrival order/ID) to break ties.
+            pending.append({'track': track, 'block': block, 'index': index})
+
+    # EDGE CASE: If there are no pending requests, return None to stop the arm.
+    if not pending:
+        return None
+    
+    # ---------------------------------------------------------
+    # STEP 2: Determine Direction and Candidates
+    # ---------------------------------------------------------
+    
+    # CHECK DIRECTION: Are we scanning "Inward" (Low Track -> High Track)?
+    if self.initialDir == 1:
+        
+        # LOGIC: Find all requests that are "ahead" of us in the current direction.
+        # Since we are moving 0 -> N, "ahead" means track >= current armTrack.
+        higher = [p for p in pending if p['track'] >= self.armTrack]
+        
+        # SUB-CASE A: We found requests ahead of us.
+        if higher:
+            # Sort them by track (ascending) so we visit the NEAREST one next.
+            # If tracks are equal, 'x['index']' ensures we allow FIFO for ties.
+            higher.sort(key=lambda x: (x['track'], x['index']))
+            
+            # The next target is the first item in this sorted list.
+            next_request = higher[0]
+            
+        # SUB-CASE B: No requests ahead. We hit the "end" of the disk.
+        # This is the "Circular" part of C-LOOK.
+        else:
+            # We do NOT reverse direction. We wrap around to the very beginning.
+            # We take the ENTIRE pending list and sort it by track (ascending).
+            pending.sort(key=lambda x: (x['track'], x['index']))
+            
+            # The first item is now the request with the LOWEST track number 
+            # (the start of the disk). We jump there.
+            next_request = pending[0]
+
+    # ---------------------------------------------------------
+    # STEP 3: Handle the Opposite Direction (if configured)
+    # ---------------------------------------------------------
+    
+    # CHECK DIRECTION: Are we scanning "Outward" (High Track -> Low Track)?
+    else: # self.initialDir == 0
+        
+        # LOGIC: Find all requests that are "ahead" (which is technically below us).
+        # Since we are moving N -> 0, "ahead" means track <= current armTrack.
+        lower = [p for p in pending if p['track'] <= self.armTrack]
+        
+        # SUB-CASE A: We found requests ahead of us (lower track numbers).
+        if lower:
+            # Sort them by track DESCENDING (Largest to Smallest).
+            # Why? Because we are at track 100 moving to 0. We want track 99, then 98.
+            # So we sort: -x['track'] (negative ensures descending sort).
+            lower.sort(key=lambda x: (-x['track'], x['index']))
+            
+            # The next target is the closest track in the downward direction.
+            next_request = lower[0]
+            
+        # SUB-CASE B: No requests ahead. We hit track 0 (or closest to it).
+        else:
+            # CIRCULAR WRAP: Jump back to the HIGHEST track number available.
+            # Sort the entire list by track Descending.
+            pending.sort(key=lambda x: (-x['track'], x['index']))
+            
+            # The first item is now the request with the HIGHEST track number.
+            next_request = pending[0]
+
+    # ---------------------------------------------------------
+    # STEP 4: Return Result
+    # ---------------------------------------------------------
+    
+    # Return the tuple expected by the simulation loop: (Block Number, Queue Index)
+    return (next_request['block'], next_request['index'])
+'''

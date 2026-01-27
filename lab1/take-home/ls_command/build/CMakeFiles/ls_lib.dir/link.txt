@@ -1,0 +1,2 @@
+/usr/bin/ar qc libls_lib.a CMakeFiles/ls_lib.dir/ls.c.o
+/usr/bin/ranlib libls_lib.a

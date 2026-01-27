@@ -1,0 +1,10 @@
+/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/build/CMakeFiles/ls_lib.dir
+/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/build/CMakeFiles/ls_test.dir
+/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/build/CMakeFiles/run_tests.dir
+/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/build/CMakeFiles/create_test_data.dir
+/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/build/CMakeFiles/create_hardlinks.dir
+/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/build/CMakeFiles/create_hidden_test_data.dir
+/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/build/CMakeFiles/create_hardlinks_hidden.dir
+/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/build/CMakeFiles/test.dir
+/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/build/CMakeFiles/edit_cache.dir
+/Users/adityabirla/Downloads/DSTN Project/CSF446_DSTN_2026_Pair12/lab1/take-home/ls_command/build/CMakeFiles/rebuild_cache.dir

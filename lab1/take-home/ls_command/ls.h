@@ -3,11 +3,13 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <sys/types.h>
 
 // Entry structure
 typedef struct {
     char* name;
     char type;
+    ino_t inode;    
 } LsEntry;
 
 // Matrix structure

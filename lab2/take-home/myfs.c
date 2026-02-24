@@ -764,3 +764,164 @@ int main(int argc, char *argv[]) {
   myfs_state_destroy(myfs_data);
   return fuse_stat;
 }
+
+/*
+append case ->
+
+// ...existing code...
+static int myfs_create(const char *path, mode_t mode,
+                       struct fuse_file_info *fi) {
+  int res;
+  int inode_idx = -1;
+  int blk_idx = -1;
+  char fpath[PATH_MAX];
+  struct myfs_state *s = MYFS_DATA;
+
+  myfs_fullpath(fpath, path);
+  log_msg("CREATE %s\n", path);
+
+  inode_idx = find_free_inode();
+  if (inode_idx == -1) {
+    log_msg("ERROR: INODES FULL\n");
+    log_fuse_context();
+    return -1;
+  }
+
+  blk_idx = find_free_data_block();
+  if (blk_idx == -1) {
+    log_msg("ERROR: NOT ENOUGH DATA BLOCKS\n");
+    log_fuse_context();
+    return -1;
+  }
+
+  s->inode_bitmap[inode_idx] = 1;
+  s->data_block_bitmap[blk_idx] = 1;
+  s->inodes[inode_idx]->num_blocks = 1;
+  s->inodes[inode_idx]->blocks[0] = blk_idx;
+  memset(s->data_blocks[blk_idx]->data, 0, (size_t)s->DATA_BLOCK_SIZE);
+
+  path_to_inode_add(s, path, inode_idx);
+  g_inode_logical_size[inode_idx] = 0;
+
+  res = open(fpath, fi->flags, mode);
+  if (res == -1) {
+    path_to_inode_remove(s, path);
+    s->inode_bitmap[inode_idx] = 0;
+    s->data_block_bitmap[blk_idx] = 0;
+    s->inodes[inode_idx]->num_blocks = 0;
+    memset(s->data_blocks[blk_idx]->data, 0, (size_t)s->DATA_BLOCK_SIZE);
+    g_inode_logical_size[inode_idx] = 0;
+
+    log_msg("ERROR: CREATE %s\n", path);
+    log_fuse_context();
+    return -errno;
+  }
+
+  fi->fh = (uint64_t)(unsigned long)res;
+  log_fuse_context();
+  return 0;
+}
+// ...existing code...
+
+// ...existing code...
+static int myfs_write(const char *path, const char *buf, size_t size,
+                      off_t offset, struct fuse_file_info *fi) {
+  int fd;
+  ssize_t res;
+  char fpath[PATH_MAX];
+  myfs_fullpath(fpath, path);
+
+  log_msg("WRITE %s\n", path);
+
+  {
+    struct myfs_state *s = MYFS_DATA;
+    int inode_idx = path_to_inode_lookup(s, path);
+    if (inode_idx >= 0) {
+      struct inode *ino = s->inodes[inode_idx];
+      int block_size = s->DATA_BLOCK_SIZE;
+      off_t logical_size = g_inode_logical_size[inode_idx];
+
+      if (fi && (fi->flags & O_APPEND)) {
+        offset = logical_size;
+      }
+
+      off_t new_end = offset + (off_t)size;
+      off_t max_end = (logical_size > new_end) ? logical_size : new_end;
+      int blocks_needed = (int)((max_end + block_size - 1) / block_size);
+      int additional = blocks_needed - ino->num_blocks;
+
+      if (additional > 0 && additional > count_free_data_blocks()) {
+        log_msg("ERROR: NOT ENOUGH DATA BLOCKS\n");
+        log_fuse_context();
+        return -1;
+      }
+
+      if (additional > 0) {
+        if (allocate_blocks_for_append(ino, blocks_needed) == -1) {
+          log_msg("ERROR: NOT ENOUGH DATA BLOCKS\n");
+          log_fuse_context();
+          return -1;
+        }
+      }
+
+      {
+        size_t bw = 0;
+        off_t cur = offset;
+        while (bw < size) {
+          int bi = (int)(cur / block_size);
+          int off_in_blk = (int)(cur % block_size);
+          int chunk = block_size - off_in_blk;
+          if ((size_t)chunk > size - bw)
+            chunk = (int)(size - bw);
+
+          memcpy(s->data_blocks[ino->blocks[bi]]->data + off_in_blk, buf + bw,
+                 (size_t)chunk);
+          bw += (size_t)chunk;
+          cur += (off_t)chunk;
+        }
+      }
+
+      if (new_end > logical_size)
+        g_inode_logical_size[inode_idx] = new_end;
+    }
+  }
+
+  if (fi == NULL)
+    fd = open(fpath, O_WRONLY);
+  else
+    fd = (int)(unsigned long)fi->fh;
+
+  if (fd == -1) {
+    log_msg("ERROR: WRITE %s\n", path);
+    log_fuse_context();
+    return -errno;
+  }
+
+  res = pwrite(fd, buf, size, offset);
+  if (res == -1) {
+    log_msg("ERROR: WRITE %s\n", path);
+    log_fuse_context();
+    if (fi == NULL)
+      close(fd);
+    return -errno;
+  }
+
+  if (fi == NULL)
+    close(fd);
+
+  log_fuse_context();
+  return (int)res;
+}
+// ...existing code...
+
+// ...existing code...
+  res = pread(fd, buf, size, offset);
+  if (res == -1) {
+    log_msg("ERROR: READ %s\n", path);
+    log_fuse_context();
+    if (fi == NULL)
+      close(fd);
+    return -errno;
+  }
+// ...existing code...
+*/

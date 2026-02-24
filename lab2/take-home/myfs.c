@@ -22,7 +22,7 @@
 #include <unistd.h>
 
 /* --- data_block init/free --- */
-void data_block_init(struct data_block *b, int size) {
+void data_block_init(struct data_block *b, int size) { 
   b->data = (char *)malloc((size_t)size);
   if (b->data)
     memset(b->data, 0, (size_t)size);
@@ -293,7 +293,7 @@ void log_msg(const char *format, ...) {
 }
 
 /* --- FUSE operations --- */
-static void myfs_fullpath(char fpath[PATH_MAX], const char *path) {
+static void myfs_fullpath(char fpath[PATH_MAX], const char *path) { //root + path
   strcpy(fpath, MYFS_DATA->rootdir);
   strncat(fpath, path, PATH_MAX - 1);
   fpath[PATH_MAX - 1] = '\0';
@@ -368,7 +368,7 @@ static int myfs_unlink(const char *path) {
    * size. */
   {
     struct myfs_state *s = MYFS_DATA;
-    int inode_idx = path_to_inode_lookup(s, path);
+    int inode_idx = path_to_inode_lookup(s, path); //inode lookup
     if (inode_idx >= 0) {
       struct inode *ino = s->inodes[inode_idx];
       int i;
@@ -395,6 +395,14 @@ static int myfs_unlink(const char *path) {
   return 0;
 }
 
+//fail create when file already exists - add to top of myfs_create
+/*
+if (path_to_inode_lookup(MYFS_DATA, path) != -1) {
+    log_msg("ERROR: FILE EXISTS\n");
+    log_fuse_context();
+    return -EEXIST;
+}
+*/
 static int myfs_create(const char *path, mode_t mode,
                        struct fuse_file_info *fi) {
   int res;                    // will store host open() result / fd
@@ -627,7 +635,7 @@ static void *myfs_init(struct fuse_conn_info *conn, struct fuse_config *cfg) {
 }
 
 static int myfs_getattr(const char *path, struct stat *stbuf,
-                        struct fuse_file_info *fi) {
+                        struct fuse_file_info *fi) { //give metadata of file
   int res;
   char fpath[PATH_MAX];
   (void)fi;
@@ -639,6 +647,37 @@ static int myfs_getattr(const char *path, struct stat *stbuf,
   return 0;
 }
 
+/*
+static int myfs_getattr(const char *path,
+                        struct stat *stbuf,
+                        struct fuse_file_info *fi)
+{
+    (void) fi;
+    memset(stbuf, 0, sizeof(struct stat));
+
+    struct myfs_state *s = MYFS_DATA;
+
+    //Root directory
+    if (strcmp(path, "/") == 0) {
+        stbuf->st_mode = S_IFDIR | 0755;
+        stbuf->st_nlink = 2;
+        return 0;
+    }
+
+    int inode_idx = path_to_inode_lookup(s, path);
+
+    if (inode_idx >= 0) {
+        //File exists in our inode table 
+        stbuf->st_mode = S_IFREG | 0644;
+        stbuf->st_nlink = 1;
+        stbuf->st_size = g_inode_logical_size[inode_idx];
+        stbuf->st_ino = inode_idx + 1;  // fake inode number
+        return 0;
+    }
+
+    return -ENOENT;
+}*/
+
 static int myfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
                         off_t offset, struct fuse_file_info *fi,
                         enum fuse_readdir_flags flags) {
@@ -649,18 +688,18 @@ static int myfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
   (void)offset;
   (void)fi;
   (void)flags;
-  myfs_fullpath(fpath, path);
+  myfs_fullpath(fpath, path); //convert to real path
 
-  dp = opendir(fpath);
+  dp = opendir(fpath); //open real dir
   if (dp == NULL)
     return -errno;
 
-  while ((de = readdir(dp)) != NULL) {
+  while ((de = readdir(dp)) != NULL) { //loop through dir using readdir
     struct stat st;
     memset(&st, 0, sizeof(st));
     st.st_ino = de->d_ino;
     st.st_mode = de->d_type << 12;
-    if (filler(buf, de->d_name, &st, 0, (enum fuse_fill_dir_flags)0))
+    if (filler(buf, de->d_name, &st, 0, (enum fuse_fill_dir_flags)0)) //filler tells fuse - this is one file name
       break;
   }
 
@@ -668,7 +707,46 @@ static int myfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
   return 0;
 }
 
-static int myfs_mkdir(const char *path, mode_t mode) {
+//modify readdir to show only tracked files
+/*
+static int myfs_readdir(const char *path,        // directory path being listed
+                        void *buf,               // buffer FUSE uses internally
+                        fuse_fill_dir_t filler,  // function used to add entries
+                        off_t offset,
+                        struct fuse_file_info *fi,
+                        enum fuse_readdir_flags flags)
+{
+    (void) offset;   // unused in this simple implementation
+    (void) fi;       // unused
+    (void) flags;    // unused
+
+    // Add "." (current directory) — required by filesystem rules
+    filler(buf, ".", NULL, 0, 0);
+
+    // Add ".." (parent directory) — also required
+    filler(buf, "..", NULL, 0, 0);
+
+    // Loop over all currently tracked files
+    for (int i = 0; i < MYFS_DATA->path_count; i++) {
+
+        // Stored paths look like "/file1.txt"
+        // readdir must return "file1.txt" (without leading slash)
+        const char *name = MYFS_DATA->path_to_inode[i].path + 1;
+
+        // Add this filename into directory listing
+        // Parameters:
+        // buf    -> internal buffer
+        // name   -> filename to show
+        // NULL   -> no stat info provided (minimal implementation)
+        // 0, 0   -> offset and flags not used here
+        filler(buf, name, NULL, 0, 0);
+    }
+
+    return 0;   // success
+}
+*/
+
+static int myfs_mkdir(const char *path, mode_t mode) { //no directory inode tracking
   int res;
   char fpath[PATH_MAX];
   myfs_fullpath(fpath, path);
@@ -925,3 +1003,111 @@ static int myfs_write(const char *path, const char *buf, size_t size,
   }
 // ...existing code...
 */
+
+/*
+static int myfs_truncate(const char *path, off_t size,
+                         struct fuse_file_info *fi)
+{
+    (void)fi;
+
+    struct myfs_state *s = MYFS_DATA;
+    int inode_idx = path_to_inode_lookup(s, path);
+
+    if (inode_idx < 0)
+        return -ENOENT;
+
+    struct inode *ino = s->inodes[inode_idx];
+    int block_size = s->DATA_BLOCK_SIZE;
+
+    off_t old_size = g_inode_logical_size[inode_idx];
+
+    //Calculate how many blocks are required for new size
+    int blocks_needed = 0;
+    if (size > 0)
+        blocks_needed = (int)((size + block_size - 1) / block_size);
+
+    //shrink 
+    if (size < old_size) {
+
+        //Free extra blocks
+        while (ino->num_blocks > blocks_needed) {
+            int blk = ino->blocks[ino->num_blocks - 1];
+
+            s->data_block_bitmap[blk] = 0;
+            memset(s->data_blocks[blk]->data, 0, block_size);
+
+            ino->num_blocks--;
+        }
+
+        // If partially shrinking inside last block, zero out unused tail bytes 
+        if (blocks_needed > 0 && size % block_size != 0) {
+            int last_blk = ino->blocks[blocks_needed - 1];
+            int offset = size % block_size;
+
+            memset(s->data_blocks[last_blk]->data + offset,
+                   0,
+                   block_size - offset);
+        }
+    }
+    //grow case
+    else if (size > old_size) {
+
+        int additional = blocks_needed - ino->num_blocks;
+
+        if (additional > 0) {
+            if (additional > count_free_data_blocks())
+                return -ENOSPC;
+
+            for (int i = 0; i < additional; i++) {
+                int blk = find_free_data_block();
+                s->data_block_bitmap[blk] = 1;
+                ino->blocks[ino->num_blocks] = blk;
+                ino->num_blocks++;
+            }
+        }
+
+        //Zero-fill new region inside last block if needed /
+        if (old_size % block_size != 0) {
+            int blk = ino->blocks[(int)(old_size / block_size)];
+            int offset = old_size % block_size;
+
+            memset(s->data_blocks[blk]->data + offset,
+                   0,
+                   block_size - offset);
+        }
+    }
+
+    //Update logical size
+    g_inode_logical_size[inode_idx] = size;
+
+    return 0;
+}*/
+
+/*
+static int myfs_rename(const char *from, const char *to, unsigned int flags)
+{
+    (void)flags;
+
+    struct myfs_state *s = MYFS_DATA;
+
+    int inode_idx = path_to_inode_lookup(s, from);
+    if (inode_idx < 0)
+        return -ENOENT;
+
+    if (path_to_inode_lookup(s, to) != -1)
+        return -EEXIST;
+
+    //Update path map 
+    path_to_inode_remove(s, from);
+    path_to_inode_add(s, to, inode_idx);
+
+    //Rename in backing directory
+    char ffrom[PATH_MAX], fto[PATH_MAX];
+    myfs_fullpath(ffrom, from);
+    myfs_fullpath(fto, to);
+
+    if (rename(ffrom, fto) == -1)
+        return -errno;
+
+    return 0;
+}*/
